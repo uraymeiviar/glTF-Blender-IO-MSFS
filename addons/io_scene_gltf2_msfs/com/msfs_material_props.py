@@ -812,15 +812,15 @@ class AsoboMaterialUVOptions:
     )
     bpy.types.Material.msfs_uv_tiling_u = bpy.props.FloatProperty(
         name="UV Tiling U",
-        min=-10.0,
-        max=10.0,
+        min=-999.0,
+        max=999.0,
         default=Defaults.UVTilingU,
         options={"ANIMATABLE"},
     )
     bpy.types.Material.msfs_uv_tiling_v = bpy.props.FloatProperty(
         name="UV Tiling V",
-        min=-10.0,
-        max=10.0,
+        min=-999.0,
+        max=999.0,
         default=Defaults.UVTilingV,
         options={"ANIMATABLE"},
     )
