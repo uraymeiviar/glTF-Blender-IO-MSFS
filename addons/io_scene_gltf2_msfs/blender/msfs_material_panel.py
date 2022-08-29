@@ -28,12 +28,12 @@ class MSFS_OT_MigrateMaterialData(bpy.types.Operator): # TODO: Remove eventually
     old_property_to_new_mapping = {
         "msfs_color_sss": "msfs_sss_color",
         "msfs_use_pearl_effect ": "msfs_use_pearl",
-        "msfs_decal_blend_factor_color": "msfs_base_color_blend_factor",
-        "msfs_decal_blend_factor_metal": "msfs_metallic_blend_factor",
-        "msfs_decal_blend_factor_normal": "msfs_normal_blend_factor",
-        "msfs_decal_blend_factor_roughness": "msfs_roughness_blend_factor",
-        "msfs_decal_blend_factor_occlusion": "msfs_occlusion_blend_factor",
-        "msfs_decal_blend_factor_emissive": "msfs_emissive_blend_factor",
+        "msfs_decal_color_blend_factor": "msfs_base_color_blend_factor",
+        "msfs_decal_metal_blend_factor": "msfs_metallic_blend_factor",
+        "msfs_decal_normal_blend_factor": "msfs_normal_blend_factor",
+        "msfs_decal_roughness_blend_factor": "msfs_roughness_blend_factor",
+        "msfs_decal_occlusion_blend_factor": "msfs_occlusion_blend_factor",
+        "msfs_decal_emissive_blend_factor": "msfs_emissive_blend_factor",
         "msfs_fresnel_opacity_bias": "msfs_fresnel_opacity_offset",
         "msfs_parallax_room_number": "msfs_parallax_room_number_xy",
         "msfs_geo_decal_blend_factor_color": "msfs_base_color_blend_factor",
@@ -76,16 +76,26 @@ class MSFS_OT_MigrateMaterialData(bpy.types.Operator): # TODO: Remove eventually
             new_property,
         ) in MSFS_OT_MigrateMaterialData.old_property_to_new_mapping.items():
             if mat.get(old_property) is not None:
+                # msfs_behind_glass_texture and msfs_detail_albedo_texture are special cases as they are they write to the same property
+                if mat.get("msfs_material_mode") == "msfs_windshield" and old_property == "msfs_behind_glass_texture":
+                    continue
+                if mat.get("msfs_material_mode") == "msfs_parallax" and old_property == "msfs_detail_albedo_texture":
+                    continue
                 mat[new_property] = mat[old_property]
 
                 del mat[old_property]
 
         # Base color is a special case - can only have 3 values, we need 4
+        base_color = [1,1,1,1]
+        alpha = 1
+        if mat.get("msfs_color_alpha_mix"):
+            alpha = mat.get("msfs_color_alpha_mix")
+            base_color[3] = alpha
         if mat.get("msfs_color_albedo_mix"):
             base_color = list(mat.get("msfs_color_albedo_mix"))
             if len(base_color) == 3:
-                base_color.append(1) # Append full alpha
-            mat.msfs_base_color_factor = base_color
+                base_color.append(alpha)
+        mat.msfs_base_color_factor = base_color
 
         # Emissive factor is also a special case - old material system had 4 floats, we only need 3
         if mat.get("msfs_color_emissive_mix"):
