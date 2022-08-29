@@ -1,18 +1,16 @@
-# glTF-Blender-IO-MSFS
-# Copyright (C) 2020-2022 The glTF-Blender-IO-MSFS authors
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# Copyright 2021-2022 The glTF-Blender-IO-MSFS authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import bpy
 import inspect
@@ -25,7 +23,7 @@ bl_info = {
     "author": "Luca Pierabella, Wing42, pepperoni505, ronh991, tml1024, and others",
     "description": "This toolkit prepares your 3D assets to be used for Microsoft Flight Simulator",
     "blender": (3, 1, 0),
-    "version": (1, 1, 5),
+    "version": (1,1,6),
     "location": "File > Import-Export",
     "category": "Import-Export",
     "tracker_url": "https://github.com/AsoboStudio/glTF-Blender-IO-MSFS"
@@ -47,6 +45,12 @@ class MSFS_ExporterProperties(bpy.types.PropertyGroup):
         description='Enable MSFS glTF export extensions',
         default=True
     )
+    use_unique_id: bpy.props.BoolProperty(
+        name='use_unique_id',
+        description='use ASOBO_unique_id extension',
+        default=False
+    )
+    
 
 class GLTF_PT_MSFSImporterExtensionPanel(bpy.types.Panel):
     bl_space_type = 'FILE_BROWSER'
@@ -99,7 +103,8 @@ class GLTF_PT_MSFSExporterExtensionPanel(bpy.types.Panel):
         layout.use_property_decorate = False  # No animation.
 
         layout.prop(props, 'enabled', text="Enabled")
-
+        if props.enabled:
+            layout.prop(props, 'use_unique_id', text="Enable ASOBO_unique_id extension")
 
 def recursive_module_search(path, root=""):
     for _, name, ispkg in pkgutil.iter_modules([str(path)]):

@@ -1,18 +1,16 @@
-# glTF-Blender-IO-MSFS
-# Copyright (C) 2020-2022 The glTF-Blender-IO-MSFS authors
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# Copyright 2021-2022 The glTF-Blender-IO-MSFS authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import bpy
 import os
@@ -35,7 +33,15 @@ class MSFS_PT_BoneProperties(bpy.types.Panel):
     
     def draw(self, context):
         layout = self.layout
-        box=layout.box()
+
+        if context.mode != 'EDIT_ARMATURE':
+            active_bone = context.active_bone
+            box = layout.box()
+            box.prop(active_bone,"msfs_override_unique_id")
+            if active_bone.msfs_override_unique_id:
+                box.prop(active_bone, "msfs_unique_id")
+
+
         box.label(text = "Behavior list", icon = 'ANIM')
         box.template_list('MSFS_UL_object_behaviorListItem', "", context.object, 'msfs_behavior', context.object, 'msfs_active_behavior')
 
@@ -60,12 +66,18 @@ class MSFS_PT_ObjectProperties(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.object.type in ['LIGHT', 'EMPTY'])
+        return context.object.type
     
     def draw(self, context):
         layout = self.layout
 
         active_object = context.object
+
+        box = layout.box()
+        box.prop(active_object,"msfs_override_unique_id")
+        if active_object.msfs_override_unique_id:
+            box.prop(active_object, "msfs_unique_id")
+            
 
         if active_object.type == 'LIGHT':
             box = layout.box()
@@ -83,6 +95,8 @@ class MSFS_PT_ObjectProperties(bpy.types.Panel):
             box.prop(active_object, "msfs_gizmo_type") # TODO: change to msfs_msfs_gizmo_type
             if active_object.msfs_gizmo_type != "NONE":
                 box.prop(active_object, "msfs_collision_is_road_collider")
+        
+        
 
 
         #if bpy.context.active_object.type == 'ARMATURE':
