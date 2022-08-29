@@ -69,6 +69,7 @@ class MSFS_ShaderNodes(Enum):
     baseColorRGB = "Base Color RGB"
     baseColorA = "Base Color A"
     alphaCutoff = "Alpha Cutoff"
+    baseColorMulAO = "Base Color Multiplier AO"
     baseColorMulRGB = "Base Color Multiplier RGB"
     baseColorMulA = "Base Color Multiplier A"
     normalTex = "Normal Texture"
@@ -384,6 +385,17 @@ class MSFS_Material:
             },
         )
 
+        # basecolor ambient occlusion operators
+        self.mulBaseColorAONode = self.addNode(
+            "ShaderNodeMixRGB",
+            {
+                "name": MSFS_ShaderNodes.baseColorMulAO.value,
+                "blend_type": "MULTIPLY",
+                "location": (0, 0.0),
+            },
+        )
+        self.mulBaseColorAONode.inputs[0].default_value = 1
+
         # emissive operators
         self.mulEmissiveNode = self.addNode(
             "ShaderNodeMixRGB",
@@ -640,6 +652,7 @@ class MSFS_Material:
         self.nodeBaseColorTex = self.getNode(MSFS_ShaderNodes.baseColorTex.value)
         self.nodeDetailColor = self.getNode(MSFS_ShaderNodes.detailColorTex.value)
         self.mulBaseColorRGBNode = self.getNode(MSFS_ShaderNodes.baseColorMulRGB.value)
+        self.mulBaseColorAONode = self.getNode(MSFS_ShaderNodes.baseColorMulAO.value)
         self.mulBaseColorANode = self.getNode(MSFS_ShaderNodes.baseColorMulA.value)
         self.blendColorMapNode = self.getNode(MSFS_ShaderNodes.blendColorMap.value)
         self.blendAlphaMapNode = self.getNode(MSFS_ShaderNodes.blendAlphaMap.value)
@@ -672,6 +685,14 @@ class MSFS_Material:
         self.innerLink(
             'nodes["{0}"].outputs[0]'.format(MSFS_ShaderNodes.baseColorRGB.value),
             'nodes["{0}"].inputs[1]'.format(MSFS_ShaderNodes.baseColorMulRGB.value),
+        )
+        self.innerLink(
+            'nodes["{0}"].outputs[0]'.format(MSFS_ShaderNodes.baseColorMulRGB.value),
+            'nodes["{0}"].inputs[1]'.format(MSFS_ShaderNodes.baseColorMulAO.value),
+        )
+        self.innerLink(
+            'nodes["{0}"].outputs[0]'.format(MSFS_ShaderNodes.occlusionMul.value),
+            'nodes["{0}"].inputs[2]'.format(MSFS_ShaderNodes.baseColorMulAO.value),
         )
 
         if not self.nodeBaseColorTex.image and not self.nodeDetailColor.image:
@@ -940,7 +961,7 @@ class MSFS_Material:
             'nodes["{0}"].inputs[1]'.format(MSFS_ShaderNodes.metallicMul.value),
         )
 
-        if not self.nodeCompTex.image and not self.nodeDetailCompTex.image:
+        if not self.nodeCompTex.image and not self.nodeDetailCompTex.image:            
             self.innerLink(
                 'nodes["{0}"].outputs[0]'.format(MSFS_ShaderNodes.roughnessScale.value),
                 'nodes["{0}"].inputs[9]'.format(self.principledBSDF.name),
@@ -959,6 +980,10 @@ class MSFS_Material:
                 'nodes["{0}"].outputs[0]'.format(MSFS_ShaderNodes.metallicMul.value),
                 'nodes["{0}"].inputs[6]'.format(self.principledBSDF.name),
             )
+            self.innerLink(
+                'nodes["{0}"].outputs[0]'.format(MSFS_ShaderNodes.baseColorMulAO.value),
+                'nodes["{0}"].inputs[0]'.format(self.principledBSDF.name),
+            )
         elif not self.nodeCompTex.image and self.nodeDetailCompTex.image:
             self.blendCompMapNode.blend_type = "ADD"
             self.innerLink(
@@ -968,6 +993,10 @@ class MSFS_Material:
             self.innerLink(
                 'nodes["{0}"].outputs[0]'.format(MSFS_ShaderNodes.metallicMul.value),
                 'nodes["{0}"].inputs[6]'.format(self.principledBSDF.name),
+            )
+            self.innerLink(
+                'nodes["{0}"].outputs[0]'.format(MSFS_ShaderNodes.baseColorMulAO.value),
+                'nodes["{0}"].inputs[0]'.format(self.principledBSDF.name),
             )
         else:
             self.blendCompMapNode.blend_type = "MULTIPLY"
