@@ -48,7 +48,7 @@ class MSFS_ExporterProperties(bpy.types.PropertyGroup):
     use_unique_id: bpy.props.BoolProperty(
         name='use_unique_id',
         description='use ASOBO_unique_id extension',
-        default=False
+        default=True
     )
     
 

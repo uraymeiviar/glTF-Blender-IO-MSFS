@@ -21,3 +21,4 @@ class MSFS_Glass(MSFS_Material):
 
     def customShaderTree(self):
         super(MSFS_Glass, self).defaultShaderStree()
+        self.principledBSDF.inputs[21].default_value = 0.15
