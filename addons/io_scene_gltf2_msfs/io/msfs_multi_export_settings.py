@@ -139,6 +139,12 @@ class MSFS_MultiExporterSettings(bpy.types.PropertyGroup):
         default=False,
     )
 
+    use_unique_id: bpy.props.BoolProperty(
+        name="Use Unique ID",
+        description="use ASOBO_unique_id extension",
+        default=True,
+    )
+
     export_extras: bpy.props.BoolProperty(
         name="Custom Properties",
         description="Export custom properties as glTF extras",

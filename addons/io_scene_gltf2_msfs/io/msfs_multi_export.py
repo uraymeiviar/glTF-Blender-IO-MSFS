@@ -73,6 +73,7 @@ class MSFS_OT_MultiExportGLTF2(bpy.types.Operator):
             export_all_influences=settings.export_all_influences,
             export_lights=settings.export_lights,
             export_displacement=settings.export_displacement,
+            use_unique_id=settings.use_unique_id
         )
 
     def execute(self, context):

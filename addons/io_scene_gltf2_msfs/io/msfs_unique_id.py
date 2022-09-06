@@ -44,5 +44,5 @@ class MSFS_unique_id:
         gltf2_object.extensions[MSFS_unique_id.extension_name] = Extension(
             name=MSFS_unique_id.extension_name,
             extension=extension,
-            required=False
+            required=True
         )
