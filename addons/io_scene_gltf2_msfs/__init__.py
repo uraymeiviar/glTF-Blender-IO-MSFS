@@ -12,22 +12,70 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import bpy
+import importlib
 import inspect
 import pkgutil
-import importlib
 from pathlib import Path
+
+import bpy
+import os
 
 bl_info = {
     "name": "Microsoft Flight Simulator glTF Extension",
-    "author": "Luca Pierabella, Wing42, pepperoni505, ronh991, tml1024, and others",
+    "author": "Luca Pierabella, Yasmine Khodja, Wing42, pepperoni505, ronh991, and others",
     "description": "This toolkit prepares your 3D assets to be used for Microsoft Flight Simulator",
-    "blender": (3, 1, 0),
-    "version": (1,1,6),
+    "blender": (3, 4, 0),
+    "version": (2,0,1,0),
     "location": "File > Import-Export",
     "category": "Import-Export",
     "tracker_url": "https://github.com/AsoboStudio/glTF-Blender-IO-MSFS"
 }
+
+#get the folder path for the .py file containing this function
+def get_path():
+    return os.path.dirname(os.path.realpath(__file__))
+
+
+#get the name of the "base" folder
+def get_name():
+    return os.path.basename(get_path())
+
+
+#now that we have the addons name we can get the preferences
+def get_prefs():
+    return bpy.context.preferences.addons[get_name()].preferences
+
+## class to add the preference settings
+class addSettingsPanel(bpy.types.AddonPreferences):
+    bl_idname = __package__
+ 
+    export_texture_dir: bpy.props.StringProperty (
+        name = "Default Texture Location",
+        description = "Default Texture Location",
+        default = "../texture/"
+    )
+
+    export_copyright: bpy.props.StringProperty (
+        name = "Default Copyright Name",
+        description = "Default Copyright Name",
+        default = "Your Copyright Here"
+    )
+
+    ## draw the panel in the addon preferences
+    def draw(self, context):
+        layout = self.layout
+
+        row = layout.row()
+        row.label(text="Optional - You can set the multi-export default values. This will be used in the multi-export window ONLY", icon='INFO')
+
+        box = layout.box()
+        col = box.column(align = False)
+
+        ## texture default location
+        col.prop(self, 'export_texture_dir', expand=False)
+
+        ## default copyright
+        col.prop(self, 'export_copyright', expand=False)
 
 def get_version_string():
     return str(bl_info['version'][0]) + '.' + str(bl_info['version'][1]) + '.' + str(bl_info['version'][2])
@@ -40,15 +88,17 @@ class MSFS_ImporterProperties(bpy.types.PropertyGroup):
     )
 
 class MSFS_ExporterProperties(bpy.types.PropertyGroup):
+
     enabled: bpy.props.BoolProperty(
         name='Microsoft Flight Simulator Extensions',
         description='Enable MSFS glTF export extensions',
-        default=True
+        default=True,
     )
+
     use_unique_id: bpy.props.BoolProperty(
-        name='use_unique_id',
-        description='use ASOBO_unique_id extension',
-        default=True
+        name='Use ASOBO Unique ID',
+        description='use ASOBO Unique ID extension',
+        default=True,
     )
     
 
@@ -104,7 +154,7 @@ class GLTF_PT_MSFSExporterExtensionPanel(bpy.types.Panel):
 
         layout.prop(props, 'enabled', text="Enabled")
         if props.enabled:
-            layout.prop(props, 'use_unique_id', text="Enable ASOBO_unique_id extension")
+            layout.prop(props, 'use_unique_id', text="Enable ASOBO Unique ID extension")
 
 def recursive_module_search(path, root=""):
     for _, name, ispkg in pkgutil.iter_modules([str(path)]):
@@ -141,6 +191,7 @@ def update_class_list():
 
 
 def register():
+    bpy.utils.register_class(addSettingsPanel)
     # Refresh the list of classes whenever the addon is reloaded so we can stay up to date with the files on disk.
     update_class_list()
 
@@ -196,6 +247,7 @@ def unregister():
 
     for cls in extension_classes:
         bpy.utils.unregister_class(cls)
+    bpy.utils.unregister_class(addSettingsPanel)
 
 def unregister_panel():
     for panel in extension_panels:
@@ -208,12 +260,20 @@ def unregister_panel():
         if hasattr(module, "unregister_panel"):
             module.unregister_panel()
 
+
+##################################################################################
 from .io.msfs_import import Import
+
+
 class glTF2ImportUserExtension(Import):
     def __init__(self):
         self.properties = bpy.context.scene.msfs_importer_properties
 
+
+##################################################################################
 from .io.msfs_export import Export
+
+
 class glTF2ExportUserExtension(Export):
     def __init__(self):
         # We need to wait until we create the gltf2UserExtension to import the gltf2 modules

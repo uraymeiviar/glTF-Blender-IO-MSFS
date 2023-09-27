@@ -11,17 +11,51 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from enum import Enum
-from ..msfs_material_function import MSFS_Material, MSFS_ShaderNodes, MSFS_AnisotropicNodes
-
+from ..msfs_material_function import MSFS_Material
+from .utils.msfs_material_enum import (MSFS_AnisotropicNodes, MSFS_FrameNodes,
+                                       MSFS_ShaderNodesTypes)
+import bpy
 
 class MSFS_Anisotropic(MSFS_Material):
     def __init__(self, material, buildTree=False):
         super().__init__(material, buildTree)
 
     def customShaderTree(self):
-        super(MSFS_Anisotropic, self).defaultShaderStree()
-        super(MSFS_Anisotropic, self).anisotropicShaderTree()
+        super(MSFS_Anisotropic, self).defaultShadersTree()
+        self.anisotropicShaderTree()
+    
+    def anisotropicShaderTree(self):
+        anisotropicFrame = self.addNode(
+            name = MSFS_FrameNodes.anisotropicFrame.value,
+            typeNode = MSFS_ShaderNodesTypes.nodeFrame.value,
+            color = (0.35, 0.6, 0.1)
+        )
+        ## Anisotropic Texture
+        # Out[0] : Separate Anisotrpic -> In[0]
+        anisotropicTexNode = self.addNode(
+            name = MSFS_AnisotropicNodes.anisotropicTex.value,
+            typeNode = "ShaderNodeTexImage",
+            location = (-500.0, -800.0),
+            width = 300.0,
+            frame = anisotropicFrame)
+        
+        ## Separate Anisotropic
+        # In[0] : Anisotropic Texture -> Out[0]
+        if(bpy.app.version < (3, 3, 0)):
+            separateAnisotropicNode = self.addNode(
+                name = MSFS_AnisotropicNodes.separateAnisotropic.value,
+                typeNode = MSFS_ShaderNodesTypes.shaderNodeSeparateRGB.value,
+                location = (-100.0, -800.0),
+                width = 300.0,
+                frame = anisotropicFrame)
+        else:
+            separateAnisotropicNode = self.addNode(
+                name = MSFS_AnisotropicNodes.separateAnisotropic.value,
+                typeNode = MSFS_ShaderNodesTypes.shaderNodeSeparateColor.value,
+                location = (-100.0, -800.0),
+                width = 300.0,
+                frame = anisotropicFrame)
+        # Links
+        self.link(anisotropicTexNode.outputs[0], separateAnisotropicNode.inputs[0])
 
     
